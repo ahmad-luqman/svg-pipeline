@@ -1,13 +1,14 @@
 """Preset configurations for common output sets."""
 
 from pathlib import Path
+from typing import Any
 
 import yaml
 
 PRESETS_DIR = Path(__file__).parent
 
 
-def load_preset(name: str) -> dict:
+def load_preset(name: str) -> dict[str, Any]:
     """Load a preset configuration by name."""
     preset_path = PRESETS_DIR / f"{name}.yaml"
     if not preset_path.exists():

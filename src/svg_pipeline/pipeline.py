@@ -1,9 +1,16 @@
 """Core pipeline orchestration."""
 
+from __future__ import annotations
+
+import sys
 from concurrent.futures import Future, as_completed
 from enum import Enum
 from pathlib import Path
-from typing import Self
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from svg_pipeline.backends.base import Backend
 from svg_pipeline.backends.pillow import PillowBackend

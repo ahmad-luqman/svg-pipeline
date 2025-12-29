@@ -142,7 +142,7 @@ class PillowBackend(Backend):
 
     def export_ico(
         self, image: Image.Image, path: Path, sizes: list[int] | None = None
-    ) -> Image.Image:
+    ) -> None:
         """Export image as ICO with multiple sizes embedded."""
         if sizes is None:
             sizes = [16, 32, 48]

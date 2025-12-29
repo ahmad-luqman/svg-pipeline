@@ -40,12 +40,12 @@ class PipelineConfig(BaseModel):
     """Main pipeline configuration."""
 
     source: Path = Field(..., description="Source SVG/image file path")
-    output_dir: Path = Field(Path("./output"), description="Output directory")
-    colors: ColorConfig = Field(default_factory=ColorConfig, description="Color theme")
-    preset: str | None = Field(None, description="Preset name to use")
+    output_dir: Path = Field(default=Path("./output"), description="Output directory")
+    colors: ColorConfig = Field(default_factory=lambda: ColorConfig(), description="Color theme")
+    preset: str | None = Field(default=None, description="Preset name to use")
     outputs: list[OutputSpec] = Field(default_factory=list, description="Custom output specs")
-    parallel: bool = Field(False, description="Enable parallel processing")
-    backend: str = Field("pillow", description="Processing backend to use")
+    parallel: bool = Field(default=False, description="Enable parallel processing")
+    backend: str = Field(default="pillow", description="Processing backend to use")
 
     model_config = {"frozen": False}
 
