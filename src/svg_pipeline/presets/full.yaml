@@ -1,0 +1,142 @@
+# Full preset - Everything: web + mobile
+name: full
+description: Generate all web and mobile icon formats
+
+generate_manifest: true
+
+outputs:
+  # === WEB ===
+  # SVG favicon
+  - name: favicon.svg
+    format: svg
+    width: 32
+    height: 32
+
+  # ICO favicon
+  - name: favicon.ico
+    format: ico
+    width: 32
+    height: 32
+
+  # Favicon PNGs
+  - name: favicon-16x16.png
+    format: png
+    width: 16
+    height: 16
+
+  - name: favicon-32x32.png
+    format: png
+    width: 32
+    height: 32
+
+  # Apple Touch Icon
+  - name: apple-touch-icon.png
+    format: png
+    width: 180
+    height: 180
+
+  # PWA icons
+  - name: android-chrome-192x192.png
+    format: png
+    width: 192
+    height: 192
+
+  - name: android-chrome-512x512.png
+    format: png
+    width: 512
+    height: 512
+
+  # Open Graph
+  - name: og-image.png
+    format: png
+    width: 1200
+    height: 630
+
+  # === MOBILE ===
+  # iOS App Store
+  - name: ios-1024.png
+    format: png
+    width: 1024
+    height: 1024
+
+  # iOS standard sizes
+  - name: ios-180.png
+    format: png
+    width: 180
+    height: 180
+
+  - name: ios-167.png
+    format: png
+    width: 167
+    height: 167
+
+  - name: ios-152.png
+    format: png
+    width: 152
+    height: 152
+
+  - name: ios-120.png
+    format: png
+    width: 120
+    height: 120
+
+  - name: ios-87.png
+    format: png
+    width: 87
+    height: 87
+
+  - name: ios-80.png
+    format: png
+    width: 80
+    height: 80
+
+  - name: ios-76.png
+    format: png
+    width: 76
+    height: 76
+
+  - name: ios-60.png
+    format: png
+    width: 60
+    height: 60
+
+  - name: ios-58.png
+    format: png
+    width: 58
+    height: 58
+
+  - name: ios-40.png
+    format: png
+    width: 40
+    height: 40
+
+  - name: ios-29.png
+    format: png
+    width: 29
+    height: 29
+
+  - name: ios-20.png
+    format: png
+    width: 20
+    height: 20
+
+  # Android densities
+  - name: android-48.png
+    format: png
+    width: 48
+    height: 48
+
+  - name: android-72.png
+    format: png
+    width: 72
+    height: 72
+
+  - name: android-96.png
+    format: png
+    width: 96
+    height: 96
+
+  - name: android-144.png
+    format: png
+    width: 144
+    height: 144

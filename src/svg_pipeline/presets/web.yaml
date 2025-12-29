@@ -1,0 +1,52 @@
+# Web preset - Standard favicon and PWA icons
+name: web
+description: Generate all standard web favicon and PWA icon formats
+
+generate_manifest: true
+
+outputs:
+  # SVG favicon (modern browsers)
+  - name: favicon.svg
+    format: svg
+    width: 32
+    height: 32
+
+  # ICO favicon (legacy browsers)
+  - name: favicon.ico
+    format: ico
+    width: 32
+    height: 32
+
+  # Standard favicon PNGs
+  - name: favicon-16x16.png
+    format: png
+    width: 16
+    height: 16
+
+  - name: favicon-32x32.png
+    format: png
+    width: 32
+    height: 32
+
+  # Apple Touch Icon
+  - name: apple-touch-icon.png
+    format: png
+    width: 180
+    height: 180
+
+  # PWA icons
+  - name: android-chrome-192x192.png
+    format: png
+    width: 192
+    height: 192
+
+  - name: android-chrome-512x512.png
+    format: png
+    width: 512
+    height: 512
+
+  # Open Graph image (social sharing)
+  - name: og-image.png
+    format: png
+    width: 1200
+    height: 630
