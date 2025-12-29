@@ -44,7 +44,7 @@ class Backend(ABC):
 
     @abstractmethod
     def resize(self, image: Any, width: int, height: int) -> Any:
-        """Resize an image to the specified dimensions.
+        """Resize an image to the specified dimensions (stretches to fit).
 
         Args:
             image: Backend-specific image object
@@ -55,6 +55,24 @@ class Backend(ABC):
             Resized image object
         """
         ...
+
+    def resize_cover(self, image: Any, width: int, height: int) -> Any:
+        """Resize and center-crop to exactly fill target dimensions.
+
+        Maintains aspect ratio by cropping overflow. Best for icons.
+        Default implementation falls back to resize() - override for proper support.
+        """
+        return self.resize(image, width, height)
+
+    def resize_contain(
+        self, image: Any, width: int, height: int, bg_color: str = "#00000000"
+    ) -> Any:
+        """Resize to fit within bounds, padding with background color.
+
+        Maintains aspect ratio by adding padding. Best for full visibility.
+        Default implementation falls back to resize() - override for proper support.
+        """
+        return self.resize(image, width, height)
 
     @abstractmethod
     def apply_background(self, image: Any, color: str) -> Any:

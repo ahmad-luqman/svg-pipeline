@@ -52,6 +52,9 @@ def generate(
     foreground: Annotated[
         Optional[str], typer.Option("--fg", help="Foreground color (hex, e.g., '#f8f8f2')")
     ] = None,
+    fit: Annotated[
+        str, typer.Option("--fit", "-f", help="Fit mode: cover (crop), contain (pad), stretch")
+    ] = "cover",
     parallel: Annotated[
         bool, typer.Option("--parallel", "-P", help="Enable parallel processing")
     ] = False,
@@ -78,6 +81,8 @@ def generate(
 
         if parallel:
             pipeline.with_parallel(max_workers=workers)
+
+        pipeline.with_fit_mode(fit)
 
         status_msg = "[bold green]Generating assets"
         if parallel:

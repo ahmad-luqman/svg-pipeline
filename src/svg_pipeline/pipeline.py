@@ -1,14 +1,23 @@
 """Core pipeline orchestration."""
 
 from concurrent.futures import Future, as_completed
+from enum import Enum
 from pathlib import Path
-from typing import Self
+from typing import Literal, Self
 
 from svg_pipeline.backends.base import Backend
 from svg_pipeline.backends.pillow import PillowBackend
 from svg_pipeline.config import ColorConfig, OutputSpec, PipelineConfig, PresetConfig
 from svg_pipeline.executor import Executor, ExecutorType, SequentialExecutor, create_executor
 from svg_pipeline.presets import load_preset
+
+
+class FitMode(Enum):
+    """How to handle aspect ratio when resizing."""
+
+    STRETCH = "stretch"  # Distort to fill (legacy behavior)
+    COVER = "cover"  # Crop to fill, no distortion (best for icons)
+    CONTAIN = "contain"  # Fit with padding (best for full visibility)
 
 
 class Pipeline:
@@ -41,6 +50,7 @@ class Pipeline:
         self._generate_manifest = False
         self._executor_type: ExecutorType = ExecutorType.SEQUENTIAL
         self._max_workers: int | None = None
+        self._fit_mode: FitMode = FitMode.COVER  # Default to cover (no distortion)
 
     def with_preset(self, preset_name: str) -> Self:
         """Load a preset configuration.
@@ -133,6 +143,26 @@ class Pipeline:
         self._max_workers = max_workers
         return self
 
+    def with_fit_mode(self, mode: FitMode | str) -> Self:
+        """Set how aspect ratio is handled when resizing.
+
+        Args:
+            mode: Fit mode - 'cover' (crop to fill), 'contain' (pad to fit),
+                  or 'stretch' (distort to fill)
+
+        Returns:
+            Self for method chaining
+
+        Note:
+            - 'cover' (default): Best for icons, crops overflow
+            - 'contain': Shows full image with padding
+            - 'stretch': Legacy behavior, may distort
+        """
+        if isinstance(mode, str):
+            mode = FitMode(mode)
+        self._fit_mode = mode
+        return self
+
     def generate(self, output_dir: str | Path) -> list[Path]:
         """Execute the pipeline and generate all outputs.
 
@@ -218,9 +248,18 @@ class Pipeline:
 
     def _generate_output(self, source_image, spec: OutputSpec, output_file: Path) -> Path:
         """Generate a single output file."""
-        # Resize to target dimensions
+        # Resize to target dimensions using the configured fit mode
         width, height = spec.size
-        resized = self.backend.resize(self.backend.copy(source_image), width, height)
+        img_copy = self.backend.copy(source_image)
+
+        match self._fit_mode:
+            case FitMode.COVER:
+                resized = self.backend.resize_cover(img_copy, width, height)
+            case FitMode.CONTAIN:
+                bg = self.colors.background or "#00000000"
+                resized = self.backend.resize_contain(img_copy, width, height, bg)
+            case FitMode.STRETCH:
+                resized = self.backend.resize(img_copy, width, height)
 
         # Export based on format
         if spec.format == "png":

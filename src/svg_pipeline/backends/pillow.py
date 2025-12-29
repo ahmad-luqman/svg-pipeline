@@ -49,8 +49,65 @@ class PillowBackend(Backend):
         return Image.open(path).convert("RGBA")
 
     def resize(self, image: Image.Image, width: int, height: int) -> Image.Image:
-        """Resize image using high-quality Lanczos resampling."""
+        """Resize image using high-quality Lanczos resampling (stretches to fit)."""
         return image.resize((width, height), Image.Resampling.LANCZOS)
+
+    def resize_cover(self, image: Image.Image, width: int, height: int) -> Image.Image:
+        """Resize and center-crop to exactly fill target dimensions.
+
+        Maintains aspect ratio by cropping the overflow. Best for icons where
+        you want the image to fill the entire space without distortion.
+        """
+        src_w, src_h = image.size
+        src_ratio = src_w / src_h
+        target_ratio = width / height
+
+        if src_ratio > target_ratio:
+            # Source is wider - crop sides
+            new_h = src_h
+            new_w = int(src_h * target_ratio)
+            left = (src_w - new_w) // 2
+            crop_box = (left, 0, left + new_w, new_h)
+        else:
+            # Source is taller - crop top/bottom
+            new_w = src_w
+            new_h = int(src_w / target_ratio)
+            top = (src_h - new_h) // 2
+            crop_box = (0, top, new_w, top + new_h)
+
+        cropped = image.crop(crop_box)
+        return cropped.resize((width, height), Image.Resampling.LANCZOS)
+
+    def resize_contain(
+        self, image: Image.Image, width: int, height: int, bg_color: str = "#00000000"
+    ) -> Image.Image:
+        """Resize to fit within bounds, padding with background color.
+
+        Maintains aspect ratio by adding padding. Best for cases where the
+        full image must be visible (like OG images for social sharing).
+        """
+        src_w, src_h = image.size
+        src_ratio = src_w / src_h
+        target_ratio = width / height
+
+        if src_ratio > target_ratio:
+            # Source is wider - fit to width, pad top/bottom
+            new_w = width
+            new_h = int(width / src_ratio)
+        else:
+            # Source is taller - fit to height, pad sides
+            new_h = height
+            new_w = int(height * src_ratio)
+
+        resized = image.resize((new_w, new_h), Image.Resampling.LANCZOS)
+
+        # Create background and paste centered
+        rgba = hex_to_rgba(bg_color)
+        result = Image.new("RGBA", (width, height), rgba)
+        paste_x = (width - new_w) // 2
+        paste_y = (height - new_h) // 2
+        result.paste(resized, (paste_x, paste_y))
+        return result
 
     def apply_background(self, image: Image.Image, color: str) -> Image.Image:
         """Composite image over a solid background color."""
