@@ -1,7 +1,7 @@
 """Command-line interface for SVG Pipeline."""
 
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from rich.console import Console
@@ -29,7 +29,7 @@ def version_callback(value: bool) -> None:
 @app.callback()
 def main(
     version: Annotated[
-        Optional[bool],
+        bool | None,
         typer.Option("--version", "-v", callback=version_callback, is_eager=True),
     ] = None,
 ) -> None:
@@ -44,13 +44,13 @@ def generate(
         Path, typer.Option("--output", "-o", help="Output directory")
     ] = Path("./output"),
     preset: Annotated[
-        Optional[str], typer.Option("--preset", "-p", help="Preset to use (web, mobile, full)")
+        str | None, typer.Option("--preset", "-p", help="Preset to use (web, mobile, full)")
     ] = None,
     background: Annotated[
-        Optional[str], typer.Option("--bg", help="Background color (hex, e.g., '#282a36')")
+        str | None, typer.Option("--bg", help="Background color (hex, e.g., '#282a36')")
     ] = None,
     foreground: Annotated[
-        Optional[str], typer.Option("--fg", help="Foreground color (hex, e.g., '#f8f8f2')")
+        str | None, typer.Option("--fg", help="Foreground color (hex, e.g., '#f8f8f2')")
     ] = None,
     fit: Annotated[
         str, typer.Option("--fit", "-f", help="Fit mode: cover (crop), contain (pad), stretch")
@@ -59,7 +59,7 @@ def generate(
         bool, typer.Option("--parallel", "-P", help="Enable parallel processing")
     ] = False,
     workers: Annotated[
-        Optional[int], typer.Option("--workers", "-w", help="Number of parallel workers")
+        int | None, typer.Option("--workers", "-w", help="Number of parallel workers")
     ] = None,
 ) -> None:
     """Generate assets from a source SVG or image file."""
@@ -122,13 +122,13 @@ def template(
         Path, typer.Option("--output", "-o", help="Output directory")
     ] = Path("./output"),
     background: Annotated[
-        Optional[str], typer.Option("--bg", help="Background color (hex)")
+        str | None, typer.Option("--bg", help="Background color (hex)")
     ] = None,
     foreground: Annotated[
-        Optional[str], typer.Option("--fg", help="Foreground color (hex)")
+        str | None, typer.Option("--fg", help="Foreground color (hex)")
     ] = None,
     preset: Annotated[
-        Optional[str], typer.Option("--preset", "-p", help="Preset to use")
+        str | None, typer.Option("--preset", "-p", help="Preset to use")
     ] = "web",
     parallel: Annotated[
         bool, typer.Option("--parallel", "-P", help="Enable parallel processing")

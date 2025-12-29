@@ -3,12 +3,12 @@
 from concurrent.futures import Future, as_completed
 from enum import Enum
 from pathlib import Path
-from typing import Literal, Self
+from typing import Self
 
 from svg_pipeline.backends.base import Backend
 from svg_pipeline.backends.pillow import PillowBackend
 from svg_pipeline.config import ColorConfig, OutputSpec, PipelineConfig, PresetConfig
-from svg_pipeline.executor import Executor, ExecutorType, SequentialExecutor, create_executor
+from svg_pipeline.executor import ExecutorType, create_executor
 from svg_pipeline.presets import load_preset
 
 

@@ -1,10 +1,11 @@
 """Executor abstraction for parallel processing."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
