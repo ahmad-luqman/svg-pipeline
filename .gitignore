@@ -52,3 +52,4 @@ dmypy.json
 examples/output/*
 !examples/output/.gitkeep
 .hypothesis/
+.DS_Store
