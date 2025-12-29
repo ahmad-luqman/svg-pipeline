@@ -51,3 +51,4 @@ dmypy.json
 # Project specific
 examples/output/*
 !examples/output/.gitkeep
+.hypothesis/

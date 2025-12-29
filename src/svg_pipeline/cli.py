@@ -52,6 +52,12 @@ def generate(
     foreground: Annotated[
         Optional[str], typer.Option("--fg", help="Foreground color (hex, e.g., '#f8f8f2')")
     ] = None,
+    parallel: Annotated[
+        bool, typer.Option("--parallel", "-P", help="Enable parallel processing")
+    ] = False,
+    workers: Annotated[
+        Optional[int], typer.Option("--workers", "-w", help="Number of parallel workers")
+    ] = None,
 ) -> None:
     """Generate assets from a source SVG or image file."""
     try:
@@ -70,7 +76,15 @@ def generate(
         if background or foreground:
             pipeline.with_colors(foreground=foreground, background=background)
 
-        with console.status("[bold green]Generating assets...[/bold green]"):
+        if parallel:
+            pipeline.with_parallel(max_workers=workers)
+
+        status_msg = "[bold green]Generating assets"
+        if parallel:
+            status_msg += " (parallel)"
+        status_msg += "...[/bold green]"
+
+        with console.status(status_msg):
             generated = pipeline.generate(output)
 
         console.print(f"\n[green]✓[/green] Generated {len(generated)} files to {output}/\n")
@@ -111,6 +125,9 @@ def template(
     preset: Annotated[
         Optional[str], typer.Option("--preset", "-p", help="Preset to use")
     ] = "web",
+    parallel: Annotated[
+        bool, typer.Option("--parallel", "-P", help="Enable parallel processing")
+    ] = False,
 ) -> None:
     """Generate assets from a built-in template."""
     try:
@@ -123,6 +140,9 @@ def template(
 
         if background or foreground:
             pipeline.with_colors(foreground=foreground, background=background)
+
+        if parallel:
+            pipeline.with_parallel()
 
         with console.status("[bold green]Generating from template...[/bold green]"):
             generated = pipeline.generate(output)

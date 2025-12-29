@@ -1,11 +1,13 @@
 """Core pipeline orchestration."""
 
+from concurrent.futures import Future, as_completed
 from pathlib import Path
 from typing import Self
 
 from svg_pipeline.backends.base import Backend
 from svg_pipeline.backends.pillow import PillowBackend
 from svg_pipeline.config import ColorConfig, OutputSpec, PipelineConfig, PresetConfig
+from svg_pipeline.executor import Executor, ExecutorType, SequentialExecutor, create_executor
 from svg_pipeline.presets import load_preset
 
 
@@ -16,6 +18,9 @@ class Pipeline:
 
     Example:
         Pipeline("logo.svg").with_preset("web").generate("./output")
+
+        # With parallel execution
+        Pipeline("logo.svg").with_preset("web").with_parallel().generate("./output")
     """
 
     def __init__(self, source: str | Path, backend: Backend | None = None):
@@ -34,6 +39,8 @@ class Pipeline:
         self.outputs: list[OutputSpec] = []
         self.preset_config: PresetConfig | None = None
         self._generate_manifest = False
+        self._executor_type: ExecutorType = ExecutorType.SEQUENTIAL
+        self._max_workers: int | None = None
 
     def with_preset(self, preset_name: str) -> Self:
         """Load a preset configuration.
@@ -102,6 +109,30 @@ class Pipeline:
         self._generate_manifest = generate
         return self
 
+    def with_parallel(
+        self,
+        executor_type: ExecutorType | str = ExecutorType.THREADPOOL,
+        max_workers: int | None = None,
+    ) -> Self:
+        """Enable parallel execution for output generation.
+
+        Args:
+            executor_type: Type of executor ('threadpool' or 'processpool')
+            max_workers: Maximum number of workers (default: CPU count based)
+
+        Returns:
+            Self for method chaining
+
+        Note:
+            ThreadPool is recommended for most cases as it handles I/O-bound
+            file operations well. ProcessPool may have overhead for small jobs.
+        """
+        if isinstance(executor_type, str):
+            executor_type = ExecutorType(executor_type)
+        self._executor_type = executor_type
+        self._max_workers = max_workers
+        return self
+
     def generate(self, output_dir: str | Path) -> list[Path]:
         """Execute the pipeline and generate all outputs.
 
@@ -129,23 +160,50 @@ class Pipeline:
         if self.colors.background:
             source_image = self.backend.apply_background(source_image, self.colors.background)
 
+        # Separate SVG outputs (just copy) from raster outputs (need processing)
+        svg_outputs = [o for o in all_outputs if o.format == "svg"]
+        raster_outputs = [o for o in all_outputs if o.format != "svg"]
+
         generated_files: list[Path] = []
 
-        # Generate each output
-        for spec in all_outputs:
-            output_file = output_path / spec.name
-            generated_files.append(self._generate_output(source_image, spec, output_file))
+        # Generate raster outputs (potentially in parallel)
+        with create_executor(self._executor_type, self._max_workers) as executor:
+            if self._executor_type == ExecutorType.SEQUENTIAL:
+                # Sequential execution
+                for spec in raster_outputs:
+                    output_file = output_path / spec.name
+                    generated_files.append(
+                        self._generate_output(source_image, spec, output_file)
+                    )
+            else:
+                # Parallel execution
+                futures: dict[Future[Path], OutputSpec] = {}
+                for spec in raster_outputs:
+                    output_file = output_path / spec.name
+                    future = executor.submit(
+                        self._generate_output, source_image, spec, output_file
+                    )
+                    futures[future] = spec
 
-        # Generate manifest if requested
-        if self._generate_manifest:
-            manifest_path = self._generate_manifest_file(output_path, all_outputs)
-            generated_files.append(manifest_path)
+                # Collect results as they complete
+                for future in as_completed(futures):
+                    try:
+                        result_path = future.result()
+                        generated_files.append(result_path)
+                    except Exception as e:
+                        spec = futures[future]
+                        raise RuntimeError(f"Failed to generate {spec.name}: {e}") from e
 
-        # Copy source SVG if any output requests it
-        svg_outputs = [o for o in all_outputs if o.format == "svg"]
+        # Copy SVG files (simple file copy, no parallelism needed)
         for svg_spec in svg_outputs:
             svg_dest = output_path / svg_spec.name
             svg_dest.write_bytes(self.source.read_bytes())
+            generated_files.append(svg_dest)
+
+        # Generate manifest if requested (after all outputs are done)
+        if self._generate_manifest:
+            manifest_path = self._generate_manifest_file(output_path, all_outputs)
+            generated_files.append(manifest_path)
 
         return generated_files
 
